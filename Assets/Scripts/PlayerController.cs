@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
+using Unity.Netcode.Components;
 
 public class PlayerController : NetworkBehaviour
 {
@@ -37,21 +38,23 @@ public class PlayerController : NetworkBehaviour
     [SerializeField]
     private Animator animator;
 
+    private NetworkAnimator networkAnimator;
+
     private float _moveSpeed;
 
     private Vector3 _mousePoint;
 
     private int tickCounter;
 
-    private void Awake()
-    {
+    private PlayerAnimationController _playerAnimationController;
 
-    }
+    private Vector3 _targetPos;
     
 
 
     public override void OnNetworkSpawn()
     {
+        
         if (IsClient)
         {
            // systemTick = new SystemTick();
@@ -91,6 +94,10 @@ public class PlayerController : NetworkBehaviour
     private void Start()
     {
         _moveSpeed = gameObject.GetComponent<Player>().movementSpeed;
+        _playerAnimationController = animator.GetComponent<PlayerAnimationController>();
+        networkAnimator = animator.GetComponent<NetworkAnimator>();
+        if(IsClient && IsOwner)
+        _playerAnimationController.OnShoot += OnShootCallback;
     }
 
 
@@ -112,6 +119,10 @@ public class PlayerController : NetworkBehaviour
             UpdateClient();
         }
 
+    }
+    private void OnShootCallback()
+    {
+        ClientShootingServerRpc(_targetPos, OwnerClientId, shootPoint.transform.position);
     }
 
     void OnSomeValueChange(MovementInterpolator.PositionInTime previous, MovementInterpolator.PositionInTime current)
@@ -165,8 +176,9 @@ public class PlayerController : NetworkBehaviour
        
         Vector3 temp = transform.position;
         temp.y = 0f;
-        Vector3 _relativepos = mousePoint.Value - temp;
-        
+        //Vector3 _relativepos = mousePoint.Value - temp;
+        Vector3 _relativepos = _mousePoint - temp;
+
 
         Quaternion LookAtRotation = Quaternion.LookRotation(_relativepos);
 
@@ -203,8 +215,10 @@ public class PlayerController : NetworkBehaviour
                         Vector3 temp = transform.position;
                         temp.y = 0;
                         Vector3 _relativepos = raycasthit.point - temp;
-
-                        ClientShootingServerRpc(_relativepos.normalized,OwnerClientId);
+                        _mousePoint = raycasthit.point;
+                        _targetPos = _relativepos.normalized;
+                         networkAnimator.SetTrigger("IsShooting");
+                        
                     }
                 }
             
@@ -219,9 +233,9 @@ public class PlayerController : NetworkBehaviour
         mousePoint.Value = _mousePoint;
     }
     [ServerRpc]
-    public void ClientShootingServerRpc(Vector3 _direction, ulong playerId)
+    public void ClientShootingServerRpc(Vector3 _direction, ulong playerId, Vector3 _shootPoint)
     {
-        ObjectSpawner.Instance.SpawnObject(shootPoint.transform.position, _direction, playerId);
+        ObjectSpawner.Instance.SpawnObject(_shootPoint, _direction, playerId);
     }
 
 
