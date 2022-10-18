@@ -27,9 +27,6 @@ public class PlayerController : NetworkBehaviour
     [SerializeField]
     public NetworkVariable<Vector3> mousePoint = new NetworkVariable<Vector3>();
 
-    private NetworkVariable<bool> IsTick = new NetworkVariable<bool>();
-
-    private bool OldTick;
 
 
     [SerializeField]
@@ -40,6 +37,8 @@ public class PlayerController : NetworkBehaviour
 
     private NetworkAnimator networkAnimator;
 
+    private Player player;
+
     private float _moveSpeed;
 
     private Vector3 _mousePoint;
@@ -49,9 +48,13 @@ public class PlayerController : NetworkBehaviour
     private PlayerAnimationController _playerAnimationController;
 
     private Vector3 _targetPos;
-    
 
-
+    public NetworkVariable<PlayerMovementState> playerMovementState = new NetworkVariable<PlayerMovementState>();
+    public enum PlayerMovementState
+    {
+        Stay,
+        Move,
+    }
     public override void OnNetworkSpawn()
     {
         
@@ -96,11 +99,10 @@ public class PlayerController : NetworkBehaviour
         _moveSpeed = gameObject.GetComponent<Player>().movementSpeed;
         _playerAnimationController = animator.GetComponent<PlayerAnimationController>();
         networkAnimator = animator.GetComponent<NetworkAnimator>();
+        player = gameObject.GetComponent<Player>();
         if(IsClient && IsOwner)
         _playerAnimationController.OnShoot += OnShootCallback;
     }
-
-
 
     private void Update()
     {
@@ -118,10 +120,11 @@ public class PlayerController : NetworkBehaviour
         {
             UpdateClient();
         }
-
     }
+
     private void OnShootCallback()
     {
+        
         ClientShootingServerRpc(_targetPos, OwnerClientId, shootPoint.transform.position);
     }
 
@@ -131,9 +134,6 @@ public class PlayerController : NetworkBehaviour
         Debug.Log($"Time: {NetworkManager.Singleton.ServerTime.TimeAsFloat}, and tick nr: {tickCounter}");
         if(Application.isFocused)
         gameObject.GetComponent<MovementInterpolator>().HandleNewTick(current.Time, current.Position);
-
-        
-    
     }
     void UpdateServer()
     {
@@ -142,7 +142,12 @@ public class PlayerController : NetworkBehaviour
 
     void UpdateServerTick()
     {
-       
+        if(playerMovementState.Value == PlayerMovementState.Stay)
+        {
+            mousePoint.Value = new Vector3(heroPos.Value.Position.x, mousePoint.Value.y, heroPos.Value.Position.y);
+        }
+
+
         Vector3 point = new Vector3(mousePoint.Value.x, 1, mousePoint.Value.z);
         Vector2 movePoint = new Vector2(point.x, point.z);
 
@@ -152,26 +157,16 @@ public class PlayerController : NetworkBehaviour
 
         MovementInterpolator.PositionInTime currentPosTime = new MovementInterpolator.PositionInTime(NetworkManager.Singleton.ServerTime.TimeAsFloat, currentPosition);
 
-        
-
         transform.position = new Vector3(currentPosition.x,1,currentPosition.y);
 
         if (heroPos.Value.Position.x == transform.position.x && heroPos.Value.Position.y == heroPos.Value.Position.y) animator.SetBool("IsMoving", false);
         else animator.SetBool("IsMoving", true);
 
         heroPos.Value = currentPosTime;
- 
-        
-        
-        //TickCallClientRpc(NetworkManager.Singleton.ServerTime.TimeAsFloat, transform.position);
+
     }
     private void UpdateClient()
     {
-        
-        
-        //systemTick.Refresh(Time.deltaTime);
-
-
         //Update Rotations
        
         Vector3 temp = transform.position;
@@ -179,17 +174,12 @@ public class PlayerController : NetworkBehaviour
         //Vector3 _relativepos = mousePoint.Value - temp;
         Vector3 _relativepos = _mousePoint - temp;
 
-
         Quaternion LookAtRotation = Quaternion.LookRotation(_relativepos);
-
-
 
         if (_relativepos != Vector3.zero)
         {
             transform.rotation = LookAtRotation;
         }
-        
-       
 
     }
     
@@ -207,7 +197,7 @@ public class PlayerController : NetworkBehaviour
                         temp.y = 0;
                         Vector3 _relativepos = raycasthit.point - temp;
                         _mousePoint = raycasthit.point;
-                    
+                        ForceMovementStateServerRpc(PlayerMovementState.Move);
                         UpdateClientMousePointServerRpc(_mousePoint);
                     }
                     if (Input.GetMouseButtonDown(0))
@@ -217,28 +207,36 @@ public class PlayerController : NetworkBehaviour
                         Vector3 _relativepos = raycasthit.point - temp;
                         _mousePoint = raycasthit.point;
                         _targetPos = _relativepos.normalized;
-                         networkAnimator.SetTrigger("IsShooting");
+
+                        ForceMovementStateServerRpc(PlayerMovementState.Stay);
+                        ShootBroServerRpc();
                         
                     }
                 }
-            
-            
         }
-        
     }
-
+    [ServerRpc]
+    public void ShootBroServerRpc()
+    {
+        animator.SetBool("IsShooting", true);
+    }
+    [ServerRpc]
+    public void ForceMovementStateServerRpc(PlayerMovementState state)
+    {
+        playerMovementState.Value = state;
+        animator.SetBool("IsShooting", false);
+    }
     [ServerRpc]
     public void UpdateClientMousePointServerRpc(Vector3 _mousePoint)
     {
         mousePoint.Value = _mousePoint;
     }
+
     [ServerRpc]
     public void ClientShootingServerRpc(Vector3 _direction, ulong playerId, Vector3 _shootPoint)
     {
         ObjectSpawner.Instance.SpawnObject(_shootPoint, _direction, playerId);
     }
-
-
 
     public void InitializeClientParams()
     {
@@ -246,20 +244,7 @@ public class PlayerController : NetworkBehaviour
         moveSpeed.Value = _moveSpeed;
         heroPos.Value = new MovementInterpolator.PositionInTime(0f,new Vector2(SpawnPosition.x, SpawnPosition.y));
         heroRotation.Value = Quaternion.identity;
+        playerMovementState.Value = PlayerMovementState.Stay;
         
-    }
-    
-    [ClientRpc]
-    //public void TickCallClientRpc(float time, Vector3 position)
-    public void TickCallClientRpc(float time, Vector3 position)
-    {
-
-        //systemTick.HandleNewTick(NetworkManager.Singleton.ServerTime.TimeAsFloat, position);
-   
-        //Debug.Log($"New tick time is: {time}");
-        Debug.Log($"New tick time arrived at server: {NetworkManager.Singleton.ServerTime.TimeAsFloat}");
-        //Debug.Log($"New tick time arrived at local: {NetworkManager.Singleton.LocalTime.TimeAsFloat}");
-
-
     }
 }

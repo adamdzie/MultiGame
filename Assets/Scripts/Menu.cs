@@ -11,10 +11,10 @@ public class Menu : MonoBehaviour
     public GameObject panel;
 
     //Call only when force to start server build or client
-  //private void Start()
+//  private void Start()
  //{
-  //      onStartServer();
-  //}
+ //       onStartServer();
+ // }
 
     public void onStartServer()
     {

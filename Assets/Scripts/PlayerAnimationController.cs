@@ -25,6 +25,7 @@ public class PlayerAnimationController : MonoBehaviour
     [SerializeField]
     private Transform CurrentStringPos;
 
+    private Animator animator;
 
     private ParentConstraint _string;
 
@@ -36,7 +37,8 @@ public class PlayerAnimationController : MonoBehaviour
     {
         _currentWeight = 0f;
         _string  = StringStretch.GetComponent<ParentConstraint>();
-
+        animator = gameObject.GetComponent<Animator>();
+        Arrow.SetActive(false);
         _string.weight = 0f;
     }
     void Update()
@@ -52,7 +54,16 @@ public class PlayerAnimationController : MonoBehaviour
     public void OnStringEndStretch()
     {
         _currentWeight = 0f;
+        Arrow.SetActive(false);
         OnShoot?.Invoke();
 
+    }
+    public void OnEndAnimation()
+    {
+        animator.SetBool("IsShooting", false);
+    }
+    public void OnArrowPick()
+    {
+        Arrow.SetActive(true);
     }
 }
