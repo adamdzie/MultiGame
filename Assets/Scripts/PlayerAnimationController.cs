@@ -43,6 +43,11 @@ public class PlayerAnimationController : MonoBehaviour
     }
     void Update()
     {
+        if (!animator.GetBool("IsShooting"))
+        {
+            Arrow.SetActive(false);
+            _currentWeight = 0f;
+        }
         _string.weight = _currentWeight;
     }
 
@@ -60,6 +65,7 @@ public class PlayerAnimationController : MonoBehaviour
     }
     public void OnEndAnimation()
     {
+        
         animator.SetBool("IsShooting", false);
     }
     public void OnArrowPick()

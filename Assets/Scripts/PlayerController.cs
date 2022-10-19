@@ -12,6 +12,8 @@ public class PlayerController : NetworkBehaviour
     [SerializeField]
     private GameObject shootPoint;
 
+    private Vector3 currentShootPoint;
+
     [SerializeField]
     private LayerMask layerMask;
 
@@ -96,6 +98,7 @@ public class PlayerController : NetworkBehaviour
     }
     private void Start()
     {
+        currentShootPoint = shootPoint.transform.position;
         _moveSpeed = gameObject.GetComponent<Player>().movementSpeed;
         _playerAnimationController = animator.GetComponent<PlayerAnimationController>();
         networkAnimator = animator.GetComponent<NetworkAnimator>();
@@ -125,7 +128,7 @@ public class PlayerController : NetworkBehaviour
     private void OnShootCallback()
     {
         
-        ClientShootingServerRpc(_targetPos, OwnerClientId, shootPoint.transform.position);
+        ClientShootingServerRpc(_targetPos, OwnerClientId, currentShootPoint);
     }
 
     void OnSomeValueChange(MovementInterpolator.PositionInTime previous, MovementInterpolator.PositionInTime current)
@@ -195,6 +198,7 @@ public class PlayerController : NetworkBehaviour
                     {
                         Vector3 temp = transform.position;
                         temp.y = 0;
+                    
                         Vector3 _relativepos = raycasthit.point - temp;
                         _mousePoint = raycasthit.point;
                         ForceMovementStateServerRpc(PlayerMovementState.Move);
@@ -205,19 +209,30 @@ public class PlayerController : NetworkBehaviour
                         Vector3 temp = transform.position;
                         temp.y = 0;
                         Vector3 _relativepos = raycasthit.point - temp;
-                        _mousePoint = raycasthit.point;
-                        _targetPos = _relativepos.normalized;
 
+                        Vector3 relative = raycasthit.point - ray.origin;
+
+                        
+                        
+                        _mousePoint = GetPointOnRay(ray.origin, relative, shootPoint.transform.position.y);
+
+                        _targetPos = _mousePoint - shootPoint.transform.position;
+                        _targetPos = _targetPos.normalized;
+
+                        _mousePoint.y = raycasthit.point.y;
+
+                        currentShootPoint = shootPoint.transform.position;
                         ForceMovementStateServerRpc(PlayerMovementState.Stay);
-                        ShootBroServerRpc();
+                        ShootBroServerRpc(_mousePoint);
                         
                     }
                 }
         }
     }
     [ServerRpc]
-    public void ShootBroServerRpc()
+    public void ShootBroServerRpc(Vector3 _mousePoint)
     {
+        mousePoint.Value = _mousePoint;
         animator.SetBool("IsShooting", true);
     }
     [ServerRpc]
@@ -246,5 +261,14 @@ public class PlayerController : NetworkBehaviour
         heroRotation.Value = Quaternion.identity;
         playerMovementState.Value = PlayerMovementState.Stay;
         
+    }
+    public Vector3 GetPointOnRay(Vector3 origin, Vector3 relative, float y)
+    {
+        Vector3 result;
+        float x = ((2 - origin.y) / relative.y) * relative.x + origin.x;
+        float z = ((2 - origin.y) / relative.y) * relative.z + origin.z;
+
+        result = new Vector3(x, y, z);
+        return result;
     }
 }
