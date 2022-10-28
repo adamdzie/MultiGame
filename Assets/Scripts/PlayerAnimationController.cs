@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Animations.Rigging;
 using UnityEngine.Animations;
+using Unity.Netcode;
 
 public class PlayerAnimationController : MonoBehaviour
 {
@@ -65,7 +66,7 @@ public class PlayerAnimationController : MonoBehaviour
     }
     public void OnEndAnimation()
     {
-        
+        if(NetworkManager.Singleton.IsServer)
         animator.SetBool("IsShooting", false);
     }
     public void OnArrowPick()

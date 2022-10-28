@@ -62,7 +62,6 @@ public class PlayerController : NetworkBehaviour
         
         if (IsClient)
         {
-           // systemTick = new SystemTick();
             transform.position = SpawnPosition;
 
             tickCounter = 0;
@@ -98,6 +97,7 @@ public class PlayerController : NetworkBehaviour
     }
     private void Start()
     {
+        transform.position = SpawnPosition;
         currentShootPoint = shootPoint.transform.position;
         _moveSpeed = gameObject.GetComponent<Player>().movementSpeed;
         _playerAnimationController = animator.GetComponent<PlayerAnimationController>();
@@ -105,6 +105,7 @@ public class PlayerController : NetworkBehaviour
         player = gameObject.GetComponent<Player>();
         if(IsClient && IsOwner)
         _playerAnimationController.OnShoot += OnShootCallback;
+
     }
 
     private void Update()
@@ -127,7 +128,7 @@ public class PlayerController : NetworkBehaviour
 
     private void OnShootCallback()
     {
-        
+        currentShootPoint = shootPoint.transform.position;
         ClientShootingServerRpc(_targetPos, OwnerClientId, currentShootPoint);
     }
 
@@ -171,18 +172,8 @@ public class PlayerController : NetworkBehaviour
     private void UpdateClient()
     {
         //Update Rotations
-       
-        Vector3 temp = transform.position;
-        temp.y = 0f;
-        //Vector3 _relativepos = mousePoint.Value - temp;
-        Vector3 _relativepos = _mousePoint - temp;
-
-        Quaternion LookAtRotation = Quaternion.LookRotation(_relativepos);
-
-        if (_relativepos != Vector3.zero)
-        {
-            transform.rotation = LookAtRotation;
-        }
+        UpdateRotation();
+        
 
     }
     
@@ -201,10 +192,12 @@ public class PlayerController : NetworkBehaviour
                     
                         Vector3 _relativepos = raycasthit.point - temp;
                         _mousePoint = raycasthit.point;
+
+                        animator.SetBool("IsShooting", false);
                         ForceMovementStateServerRpc(PlayerMovementState.Move);
                         UpdateClientMousePointServerRpc(_mousePoint);
                     }
-                    if (Input.GetMouseButtonDown(0))
+                    if (Input.GetMouseButtonDown(0) && !animator.GetBool("IsShooting"))
                     {
                         Vector3 temp = transform.position;
                         temp.y = 0;
@@ -215,13 +208,17 @@ public class PlayerController : NetworkBehaviour
                         
                         
                         _mousePoint = GetPointOnRay(ray.origin, relative, shootPoint.transform.position.y);
-
-                        _targetPos = _mousePoint - shootPoint.transform.position;
-                        _targetPos = _targetPos.normalized;
-
+                        Vector3 targetPosition = _mousePoint;
                         _mousePoint.y = raycasthit.point.y;
 
-                        currentShootPoint = shootPoint.transform.position;
+                        UpdateRotation();
+
+                        _targetPos = targetPosition - shootPoint.transform.position;
+                        _targetPos = _targetPos.normalized;
+
+                        
+
+                        
                         ForceMovementStateServerRpc(PlayerMovementState.Stay);
                         ShootBroServerRpc(_mousePoint);
                         
@@ -233,13 +230,15 @@ public class PlayerController : NetworkBehaviour
     public void ShootBroServerRpc(Vector3 _mousePoint)
     {
         mousePoint.Value = _mousePoint;
-        animator.SetBool("IsShooting", true);
+
+            animator.SetBool("IsShooting", true);
+
     }
     [ServerRpc]
     public void ForceMovementStateServerRpc(PlayerMovementState state)
     {
         playerMovementState.Value = state;
-        animator.SetBool("IsShooting", false);
+        //animator.SetBool("IsShooting", false);
     }
     [ServerRpc]
     public void UpdateClientMousePointServerRpc(Vector3 _mousePoint)
@@ -262,6 +261,7 @@ public class PlayerController : NetworkBehaviour
         playerMovementState.Value = PlayerMovementState.Stay;
         
     }
+    //Return Vector3 point of ray between camera origin and raycasthitpoint where y define height where ray reaches this value.
     public Vector3 GetPointOnRay(Vector3 origin, Vector3 relative, float y)
     {
         Vector3 result;
@@ -270,5 +270,18 @@ public class PlayerController : NetworkBehaviour
 
         result = new Vector3(x, y, z);
         return result;
+    }
+    public void UpdateRotation()
+    {
+        Vector3 temp = transform.position;
+        temp.y = 0f;
+        Vector3 _relativepos = _mousePoint - temp;
+
+        Quaternion LookAtRotation = Quaternion.LookRotation(_relativepos);
+
+        if (_relativepos != Vector3.zero)
+        {
+            transform.rotation = LookAtRotation;
+        }
     }
 }
