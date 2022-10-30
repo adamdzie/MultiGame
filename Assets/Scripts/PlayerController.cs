@@ -52,6 +52,11 @@ public class PlayerController : NetworkBehaviour
     private Vector3 _targetPos;
 
     public NetworkVariable<PlayerMovementState> playerMovementState = new NetworkVariable<PlayerMovementState>();
+    public enum PlayerInputState
+    {
+        Default,
+        Skill,
+    }
     public enum PlayerMovementState
     {
         Stay,

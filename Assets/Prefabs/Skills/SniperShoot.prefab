@@ -104,7 +104,7 @@ TrailRenderer:
       m_RotationOrder: 4
     colorGradient:
       serializedVersion: 2
-      key0: {r: 1, g: 1, b: 1, a: 1}
+      key0: {r: 1, g: 0, b: 0, a: 1}
       key1: {r: 1, g: 1, b: 1, a: 0.7058824}
       key2: {r: 1, g: 1, b: 1, a: 1}
       key3: {r: 0, g: 0, b: 0, a: 0}
@@ -5175,7 +5175,7 @@ ParticleSystem:
       serializedVersion: 2
       minMaxState: 0
       minColor: {r: 1, g: 1, b: 1, a: 1}
-      maxColor: {r: 1, g: 1, b: 1, a: 1}
+      maxColor: {r: 1, g: 0.8004394, b: 0.08962262, a: 1}
       maxGradient:
         serializedVersion: 2
         key0: {r: 1, g: 1, b: 1, a: 1}
@@ -9825,9 +9825,9 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: af7b73511985c8c40a672012bae3ecdc, type: 2}
-  - {fileID: 2100000, guid: 6c9812ef34bf1ba4dab7d7fc50fcd924, type: 2}
-  - {fileID: 2100000, guid: 18af7f5bc19fe0b4994a63978598c6c1, type: 2}
+  - {fileID: 2100000, guid: 95400895ee102d243b417b745bf17af7, type: 2}
+  - {fileID: 2100000, guid: 78522e4d0e0e2d84bb776e7bbd6dc963, type: 2}
+  - {fileID: 2100000, guid: 08ab28dcf6d9ad945acb1632e2f3736b, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -9864,7 +9864,7 @@ GameObject:
   - component: {fileID: 5223189538070757285}
   - component: {fileID: 927968716280588943}
   m_Layer: 0
-  m_Name: Skill
+  m_Name: SniperShoot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

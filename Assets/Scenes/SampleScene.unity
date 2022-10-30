@@ -2125,7 +2125,7 @@ MonoBehaviour:
   m_DisconnectTimeoutMS: 30000
   ConnectionData:
     Address: 127.0.0.1
-    Port: 7777
+    Port: 9000
     ServerListenAddress: 
   DebugSimulator:
     PacketDelayMS: 0
@@ -2151,12 +2151,6 @@ MonoBehaviour:
     PlayerPrefab: {fileID: 6028757489304651218, guid: 4d85bf609b3678147acd618ebc440c03,
       type: 3}
     NetworkPrefabs:
-    - Override: 0
-      Prefab: {fileID: 1484882629219624370, guid: 1649da25a4ff6214489bbd7d61092653,
-        type: 3}
-      SourcePrefabToOverride: {fileID: 0}
-      SourceHashToOverride: 0
-      OverridingTargetPrefab: {fileID: 0}
     - Override: 0
       Prefab: {fileID: 8830889955060960435, guid: 56daea7df2797ea49852766fc81c961f,
         type: 3}

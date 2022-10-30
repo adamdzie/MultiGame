@@ -8,8 +8,8 @@ public class NetworkConfig : MonoBehaviour
 
     private void Start()
     {
-        //Application.targetFrameRate = 70;
-        //QualitySettings.vSyncCount = 0;
+       //Application.targetFrameRate = 70;
+       // QualitySettings.vSyncCount = 0;
         
         Setup();
     }
