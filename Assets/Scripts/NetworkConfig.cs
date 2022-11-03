@@ -28,7 +28,7 @@ private void ApprovalCheck(NetworkManager.ConnectionApprovalRequest request, Net
 
     // Your approval logic determines the following values
     response.Approved = true;
-    response.CreatePlayerObject = true;
+    response.CreatePlayerObject = false;
 
     // The prefab hash value of the NetworkPrefab, if null the default NetworkManager player prefab is used
     response.PlayerPrefabHash = null;

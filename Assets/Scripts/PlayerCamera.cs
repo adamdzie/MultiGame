@@ -71,7 +71,7 @@ public class PlayerCamera : Singleton<PlayerCamera>
     }
     void cameraMovement()
     {
-        if (freezeCamera)
+        if (freezeCamera && target != null)
         {
             transform.position = target.transform.position + offset;
             return;

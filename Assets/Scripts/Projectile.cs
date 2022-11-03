@@ -86,10 +86,10 @@ public class Projectile : NetworkBehaviour
         {
             if (other.gameObject.GetComponent<Player>().playerId != ownerId)
             {
-                OnHitPlayer(other.gameObject.GetComponent<Player>());
+                Player player = other.gameObject.GetComponent<Player>();
 
-                
-                
+                OnHitPlayer(player);
+
 
             }
         }

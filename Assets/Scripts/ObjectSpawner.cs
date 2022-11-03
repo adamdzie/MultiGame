@@ -10,6 +10,9 @@ public class ObjectSpawner : NetworkSingleton<ObjectSpawner>
 
     [SerializeField]
     private GameObject VfxEffect;
+
+    [SerializeField]
+    private GameObject Player;
     
     public void SpawnObject(Vector3 _spawnPosition, Vector3 _direction, ulong playerId)
     {
@@ -25,5 +28,11 @@ public class ObjectSpawner : NetworkSingleton<ObjectSpawner>
         go.GetComponent<NetworkObject>().Spawn();
         go.GetComponent<ParticleSystem>().Play();
     }
-    
+    public void SpawnPlayer(ulong clientId)
+    {
+        GameObject go = Instantiate(Player);
+        go.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId);
+    }
+
+
 }
